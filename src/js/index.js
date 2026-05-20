@@ -120,7 +120,7 @@ $(document).ready(function () {
 	async function getAvailableDatasets() {
 		try {
 			console.log("Getting available datasets from HMIS");
-
+			$("#datasetList").empty();
 			// Fixed to 3 GESI datasets
 			$("#datasetList").append(
 				$("<option></option>").text("21 Geriatric Services").val("Gcy5LFfxKPi")
@@ -413,7 +413,14 @@ $(document).ready(function () {
 		}
 
 		const encodedCredentials = btoa(user + ':' + pass);
-		sessionStorage.setItem("tempCreds", encodedCredentials);
+		const res = await apiGet(
+			`${hmisBaseUrl}/api/ping`,
+			{ headers: 	{ 'Authorization': 'Basic ' + encodedCredentials } }
+		);
+		console.log(res)
+		if(res){
+			sessionStorage.setItem("tempCreds", encodedCredentials);
+		}
 
 		await init();
 
