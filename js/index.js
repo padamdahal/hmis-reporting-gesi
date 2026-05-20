@@ -26,6 +26,32 @@ $(document).ready(function () {
 	
 	let finalJSON = {};
 
+	var orgUnit = '';
+	// Select organization unit
+	var selectedOrgUnit;
+	selection.setListenerFunction(function(e){
+		selectedOrgUnit = e;
+		var selectedOrgUnitName = document.getElementsByClassName("selected")[0].innerHTML;
+		document.getElementById('orgUnitName').value = selectedOrgUnitName;
+		document.getElementById('orgUnit').value = e[0];
+    
+		orgUnit = e[0];
+		$.getJSON('../../../../api/organisationUnits/'+e[0]+'?paging=false&fields=children[id]').done(ous => {
+			$.each(ous.children, function(i, ou) {
+				//orgUnit += ";"+ou.id;
+			});
+		});
+	});
+
+	// Organization Unit search
+	$("#searchField").autocomplete({
+		source: "../../../../dhis-web-commons/ouwt/getOrganisationUnitsByName.action",
+		select: function(event,ui) {
+			$("#searchField").val(ui.item.value);
+			selection.findByName();
+		}
+	});
+
 	// ------------------ INIT ------------------
 	async function init() {
 		$("#mainContent").hide();
@@ -46,6 +72,7 @@ $(document).ready(function () {
 				getAvailableDatasets(),
 				getLocalProgramIndicators()
 			]);
+
 		} else {
 			$("#loginPanel").show();
 			$("#showLoginBtn").hide();
@@ -104,11 +131,6 @@ $(document).ready(function () {
 		try {
 			console.log("Getting available datasets from HMIS");
 
-			//const res = await apiGet(
-			//	`${hmisBaseUrl}/api/dataSets?fields=name,id&paging=false`,
-			//	{ headers: getAuthHeader() }
-			//);
-
 			// Fixed to 3 GESI datasets
 			$("#datasetList").append(
 				$("<option></option>").text("21 Geriatric Services").val("Gcy5LFfxKPi")
@@ -119,16 +141,7 @@ $(document).ready(function () {
 			$("#datasetList").append(
 				$("<option></option>").text("23 Social Security Unit").val("OQ4e1903ugD")
 			);
-
-			//$("#datasetList").empty();
-			//res.dataSets.forEach(ds => {
-			//	if(ds.name.substring(0,2) !== "00"){
-			//		$("#datasetList").append(
-			//			$("<option></option>").text(ds.name).val(ds.id)
-			//		);
-			//	}
-			//});
-			
+	
 			// Set global variables for immediate action
 			selectedDataset = $("#datasetList").val();
 			selectedDatasetTitle = $("#datasetList option:selected").text();

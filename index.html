@@ -65,10 +65,18 @@
 			</div>
 			
 			<div id="ouPanel" style="display:block;position:relative;margin-top:15px;">
-			  <h3>Organisation Unit</h3>
-			  <div id="orgUnits">
-				<select id="orgUnitList"><option value="">Select OrgUnit</option></select>
-			  </div>
+			  	<h3>Organisation Unit</h3>
+			  	
+			  	<div id="orgUnits">
+					<!--select id="orgUnitList"><option value="">Select OrgUnit</option></select-->
+					<div><input id="searchField" type="text" placeholder="Search OrgUnit" style="width:100%"/></div>
+					<div id="orgUnitTreeContainer">
+						<img id="ouwt_loader" src="../../../../images/ajax-loader-bar.gif"/>
+						<div id="orgUnitTree" style="width:100%;height:auto;margin:10px 0">
+							<ul></ul>
+						</div>
+					</div>
+			 	 </div>
 			</div>
 			<div id="periodPanel">
 			  <h3>Reporting Period</h3>
