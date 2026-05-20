@@ -20,8 +20,8 @@ $(document).ready(function () {
 	let selectedPeriod = $("#period").val();
 	let selectedPeriodName = $("#period option:selected").text();
 	
-	let selectedOrgUnit = $("#orgUnitList").val();
-	let selectedOrgUnitCode = $("#orgUnitList option:selected").data("code");
+	//let selectedOrgUnit = $("#orgUnitList").val();
+	//let selectedOrgUnitCode = $("#orgUnitList option:selected").data("code");
 	let hmisOuId = null;
 	
 	let finalJSON = {};
