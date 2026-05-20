@@ -104,19 +104,30 @@ $(document).ready(function () {
 		try {
 			console.log("Getting available datasets from HMIS");
 
-			const res = await apiGet(
-				`${hmisBaseUrl}/api/dataSets?fields=name,id&paging=false`,
-				{ headers: getAuthHeader() }
+			//const res = await apiGet(
+			//	`${hmisBaseUrl}/api/dataSets?fields=name,id&paging=false`,
+			//	{ headers: getAuthHeader() }
+			//);
+
+			// Fixed to 3 GESI datasets
+			$("#datasetList").append(
+				$("<option></option>").text("21 Geriatric Services").val("Gcy5LFfxKPi")
+			);
+			$("#datasetList").append(
+				$("<option></option>").text("22 One-stop Crisis Management Center").val("yojJae2XSYZ")
+			);
+			$("#datasetList").append(
+				$("<option></option>").text("23 Social Security Unit").val("OQ4e1903ugD")
 			);
 
-			$("#datasetList").empty();
-			res.dataSets.forEach(ds => {
-				if(ds.name.substring(0,2) !== "00"){
-					$("#datasetList").append(
-						$("<option></option>").text(ds.name).val(ds.id)
-					);
-				}
-			});
+			//$("#datasetList").empty();
+			//res.dataSets.forEach(ds => {
+			//	if(ds.name.substring(0,2) !== "00"){
+			//		$("#datasetList").append(
+			//			$("<option></option>").text(ds.name).val(ds.id)
+			//		);
+			//	}
+			//});
 			
 			// Set global variables for immediate action
 			selectedDataset = $("#datasetList").val();
