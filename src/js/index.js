@@ -30,7 +30,7 @@ $(document).ready(function () {
 		selectedOrgUnit = e[0];
 		var selectedOrgUnitName = document.getElementsByClassName("selected")[0].innerHTML;
 		console.log(selectedOrgUnitName);
-		const temp = await getSelectedOrgUnitInfo(e[0]);
+		const temp = getSelectedOrgUnitInfo(e[0]);
 	});
 
 	// Organization Unit search
@@ -58,7 +58,7 @@ $(document).ready(function () {
 			loadPeriod(npYear);
 			
 			await Promise.all([
-				loadUserOrgUnit(),
+				getSelectedOrgUnitInfo(),
 				getAvailableDatasets(),
 				getLocalProgramIndicators()
 			]);
@@ -145,7 +145,7 @@ $(document).ready(function () {
 		
 		try {
 			const res = await apiGet(
-				`${baseUrl}/api/organisationUnits/${ouId}?fields=id,name,code`
+				`${baseUrl}/organisationUnits/${ouId}?fields=id,name,code`
 			);
 
 			if(!res.code){
