@@ -1,7 +1,9 @@
 $(document).ready(function () {
 	const todayNP = NepaliFunctions.BS.GetCurrentDate();
-	var npMonth = ((todayNP.month-1) == 0)? 12 : (todayNP-1);
-	var npYear = ((todayNP.month-1) == 0) ? (todayNP.year-1) : todayNP.year;
+	console.log(todayNP);
+	const npMonth = ((todayNP.month-1) == 0)? 12 : todayNP.month;
+	const npYear = ((todayNP.month-1) == 0) ? (todayNP.year-1) : todayNP.year;
+	console.log(npYear + " " + npMonth);
 	
 	const hmisBaseUrl = "https://hmis.gov.np/hmis";
 	$("#hmisBaseUrl").html(hmisBaseUrl);
@@ -49,14 +51,14 @@ $(document).ready(function () {
 		
 		$("#submissionStatus").hide();
 		$("#submitBtnContainer").hide();
-			
+		
+		loadPeriod(npYear);
+		
 		if (sessionStorage.getItem("tempCreds")) {
 			$("#loginPanel").hide();
 			$("#showLoginBtn").show();
 			$("#loadData").show();
-			
-			loadPeriod(npYear);
-			
+					
 			await Promise.all([
 				getSelectedOrgUnitInfo(),
 				getAvailableDatasets(),
@@ -104,7 +106,7 @@ $(document).ready(function () {
 		if(year <= npYear){
 			const months = ["Baisakh", "Jestha", "Asar", "Shrawan", "Bhadra", "Ashwin", "Kartik", "Mangsir", "Paush", "Magh", "Falgun", "Chaitra"];
 			$("#period").empty();
-			let start = (year == npYear) ? npMonth : 12;
+			let start = (year == npYear) ? npMonth-1 : 12;
 			for (let m = start; m >= 1; m--) {
 				const value = year + ("0" + m).slice(-2);
 				$("#period").append(
@@ -182,7 +184,7 @@ $(document).ready(function () {
 	async function getLocalProgramIndicators() {
 		try {
 			const res = await apiGet(
-				`${baseUrl}/programIndicators?fields=id,name,attributeValues[value,attribute[name]],aggregateExportCategoryOptionCombo&paging=false`
+				`${baseUrl}/programIndicators?fields=id,name,aggregateExportCategoryOptionCombo&paging=false`
 			);
 
 			programIndicators = res.programIndicators;
@@ -245,24 +247,15 @@ $(document).ready(function () {
 			const deId = idParts[0];
 
 			programIndicators.forEach(pi => {
-				pi.attributeValues.forEach(av => {
-					if (
-						av.attribute.id === "b8KbU93phhz" &&
-						av.value === deId
-					) {
-						if (!piIdsToQuery.includes(pi.id)) {
-							piIdsToQuery.push(pi.id);
-						}
+				if(pi.aggregateExportCategoryOptionCombo ===  idParts[0]+"-"+idParts[1]){
+					if (!piIdsToQuery.includes(pi.id)) {
+						piIdsToQuery.push(pi.id);
 					}
-				});
+				}
 			});
 		});
 
 		if (piIdsToQuery.length === 0) return;
-		
-		// Ensure orgUnit and period
-		const selectedOrgUnit = document.getElementById("orgUnitList").value;
-		const selectedPeriod = document.getElementById("period").value;
 		
 		// Date conversion logic
 		const isoPe = getIsoDatesFromBsMonth(selectedPeriod);
@@ -279,17 +272,13 @@ $(document).ready(function () {
 			
 			console.log("Setting data in respecitve input fields and preparing dataValues...");
 			res.rows.forEach(row => {
-				const dataPi = row[0];
+				const piInDataRow = row[0];
 				const dataValue = parseInt(row[1]);
 
-				const pi = programIndicators.find(p => p.id === dataPi);
-				const cocId = pi.aggregateExportCategoryOptionCombo;
-
-				const filteredPi = pi.attributeValues.find(
-					av => av.attribute.id === "b8KbU93phhz"
-				);
-
-				const deId = filteredPi ? filteredPi.value : null;
+				const pi = programIndicators.find(p => p.id === piInDataRow);
+				const deId = pi.aggregateExportCategoryOptionCombo.split("-")[0];
+				const cocId = pi.aggregateExportCategoryOptionCombo.split("-")[1];
+				
 				const el = document.getElementById(`${deId}-${cocId}-val`);
 				
 				if(el){
@@ -306,7 +295,6 @@ $(document).ready(function () {
 			});
 			
 			console.log("Preparing final JSON...");
-			
 			
 			finalJSON = {
 				dataSet: selectedDataset,
@@ -417,10 +405,7 @@ $(document).ready(function () {
 			`${hmisBaseUrl}/api/ping`,
 			{ headers: 	{ 'Authorization': 'Basic ' + encodedCredentials } }
 		);
-		console.log(res)
-		if(res){
-			sessionStorage.setItem("tempCreds", encodedCredentials);
-		}
+		sessionStorage.setItem("tempCreds", encodedCredentials);
 
 		await init();
 
