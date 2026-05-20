@@ -20,27 +20,17 @@ $(document).ready(function () {
 	let selectedPeriod = $("#period").val();
 	let selectedPeriodName = $("#period option:selected").text();
 	
-	//let selectedOrgUnit = $("#orgUnitList").val();
+	let selectedOrgUnit = null;
 	//let selectedOrgUnitCode = $("#orgUnitList option:selected").data("code");
 	let hmisOuId = null;
 	
 	let finalJSON = {};
 
-	var orgUnit = '';
-	// Select organization unit
-	var selectedOrgUnit;
 	selection.setListenerFunction(function(e){
-		selectedOrgUnit = e;
+		selectedOrgUnit = e[0];
 		var selectedOrgUnitName = document.getElementsByClassName("selected")[0].innerHTML;
-		document.getElementById('orgUnitName').value = selectedOrgUnitName;
-		document.getElementById('orgUnit').value = e[0];
-    
-		orgUnit = e[0];
-		$.getJSON('../../../../api/organisationUnits/'+e[0]+'?paging=false&fields=children[id]').done(ous => {
-			$.each(ous.children, function(i, ou) {
-				//orgUnit += ";"+ou.id;
-			});
-		});
+		console.log(selectedOrgUnitName);
+		const temp = await getSelectedOrgUnitInfo(e[0]);
 	});
 
 	// Organization Unit search
@@ -151,31 +141,18 @@ $(document).ready(function () {
 		}
 	}
 
-	async function loadUserOrgUnit() {
-		console.log("Loading user orgUnit...");
+	async function getSelectedOrgUnitInfo(ouId) {
+		
 		try {
 			const res = await apiGet(
-				`${baseUrl}/me?fields=organisationUnits[name,id,level,code]`
+				`${baseUrl}/api/organisationUnits/${ouId}?fields=id,name,code`
 			);
 
-			$("#orgUnitList").empty();
-			
-			/*$("#orgUnitList").append(
-				$("<option></option>").text("Test Health Post").val("bo81YbFQLF4").attr("data-code", "7070100021")
-			);*/
-			
-			res.organisationUnits.forEach(ou => {
-				if(!ou.code){
-					console.log("OrgUnit code is missing...");
-				}
-				
-				$("#orgUnitList").append(
-					$("<option></option>").text(ou.name).val(ou.id).attr("data-code", ou.code)
-				);
-			});
-			
-			selectedOrgUnit = $("#orgUnitList").val();
-			
+			if(!res.code){
+				console.log("OrgUnit code is missing...");
+			}else{
+				var temp =  await getRemoteOrgUnitIdByCode(res.code);
+			}			
 		} catch (e) {
 			showError();
 		}
@@ -329,6 +306,7 @@ $(document).ready(function () {
 			});
 			
 			console.log("Preparing final JSON...");
+			
 			
 			finalJSON = {
 				dataSet: selectedDataset,
