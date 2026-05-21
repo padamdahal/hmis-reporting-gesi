@@ -147,14 +147,19 @@ $(document).ready(function () {
 		
 		try {
 			const res = await apiGet(
-				`${baseUrl}/organisationUnits/${ouId}?fields=id,name,code`
+				`${baseUrl}/organisationUnits/${ouId}?fields=id,name,code,level`
 			);
 
 			if(!res.code){
 				console.log("OrgUnit code is missing...");
 			}else{
-				var temp =  await getRemoteOrgUnitIdByCode(res.code);
-			}			
+				await getRemoteOrgUnitIdByCode(res.code);
+				$("#submitBtnContainer").show();
+			}
+			
+			if(res.level != 6){
+				$("#submitBtnContainer").hide();
+			}
 		} catch (e) {
 			showError();
 		}
@@ -258,11 +263,22 @@ $(document).ready(function () {
 		if (piIdsToQuery.length === 0) return;
 		
 		// Date conversion logic
-		const isoPe = getIsoDatesFromBsMonth(selectedPeriod);
+		//const isoPe = getIsoDatesFromBsMonth(selectedPeriod);
+		const isoPe = getIsoStartAndEndDatesFromBsMonth(selectedPeriod);
+
 		
+		/*
+		// ISO Daily Periods - when used getIsoDatesFromBSMonth
 		const analyticsUrl = `${baseUrl}/analytics.json?dimension=dx:${piIdsToQuery.join(";")}` +
 			`&filter=ou:${selectedOrgUnit}` +
 			`&filter=pe:${isoPe.join(";")}` +
+			`&outputIdScheme=UID`;
+		*/
+
+		// ISO startDate and EndDate - when used getIsoStartAndEndDatesFromBsMonth
+		const analyticsUrl = `${baseUrl}/analytics.json?dimension=dx:${piIdsToQuery.join(";")}` +
+			`&filter=ou:${selectedOrgUnit}` +
+			`&&startDate=${isoPe.startDate}` + `&endDate=${isoPe.endDate}` + 
 			`&outputIdScheme=UID`;
 
 		try {
@@ -379,6 +395,26 @@ $(document).ready(function () {
 		}
 		return dates;
 	}
+
+	function getIsoStartAndEndDatesFromBsMonth(period) {
+		console.log("Generating ISO start and end dates for the selected month...");
+		
+		const year = period.substring(0, 4);
+		const month = period.substring(4, 6);
+
+		const dates = [];
+		let start = 1;
+		const bsStartDate = `${year}-${month}-${String(start).padStart(2, '0')}`;
+		const adStartDate = (NepaliFunctions.BS.ValidateDate(bsStartDate)) ? NepaliFunctions.BS2AD(bsStartDate): null;
+
+		const bsEndDate = `${year}-${month}-${String(NepaliFunctions.BS.GetDaysInMonth(year,month)).padStart(2, '0')}`;
+		const adEndDate = (NepaliFunctions.BS.ValidateDate(bsEndDate)) ? NepaliFunctions.BS2AD(bsEndDate): null;
+		
+		return {
+			"startDate": adStartDate,
+			"endDate": adEndDate
+		};
+	}
 	
 	// ------------------ EVENTS ------------------
 	$("#prev").click(function () {
@@ -402,7 +438,7 @@ $(document).ready(function () {
 
 		const encodedCredentials = btoa(user + ':' + pass);
 		const res = await apiGet(
-			`${hmisBaseUrl}/api/ping`,
+			`${hmisBaseUrl}/api/me.json`,
 			{ headers: 	{ 'Authorization': 'Basic ' + encodedCredentials } }
 		);
 		sessionStorage.setItem("tempCreds", encodedCredentials);
